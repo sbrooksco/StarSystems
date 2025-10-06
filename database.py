@@ -1,7 +1,7 @@
 import sqlite3
 from models import StarSystem, Planet
 
-DB_FILE = "star_systems.db"
+DB_FILE = "data/star_systems.db"
 
 
 def init_db():
