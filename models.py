@@ -12,7 +12,7 @@ class Planet:
         if self.mass < 0.1:
             return "Dwarf Planet"
         elif self.mass < 2 and self.radius < 1.5:
-            return "Terrestial"
+            return "Terrestrial"
         elif self.mass < 10:
             return "Super-Earth"
         else:

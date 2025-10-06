@@ -1,120 +1,101 @@
 import sqlite3
 from models import StarSystem, Planet
 
-DB_FILE = "star_system.db"
+DB_FILE = "star_systems.db"
+
 
 def init_db():
+    """Create tables if they don’t exist yet."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
+
+    # star_systems: name is unique so ON CONFLICT(name) works
     c.execute("""
-        CREATE TABLE IF NOT EXISTS star_systems (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            star_type TEXT,
-            distance_ly REAL
-        )
+    CREATE TABLE IF NOT EXISTS star_systems (
+        name TEXT PRIMARY KEY,
+        star_type TEXT,
+        distance_ly REAL
+    )
     """)
 
+    # planets table linked to star_systems by system_name
     c.execute("""
-        CREATE TABLE IF NOT EXISTS planets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            mass REAL,
-            radius REAL,
-            orbit_distance REAL,
-            system_id INTEGER,
-            FOREIGN KEY(system_id) REFERENCES star_systems(id),
-            UNIQUE(name, system_id)
-        )
+    CREATE TABLE IF NOT EXISTS planets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        mass REAL,
+        radius REAL,
+        orbit_distance REAL,
+        system_name TEXT,
+        FOREIGN KEY(system_name) REFERENCES star_systems(name)
+    )
     """)
 
     conn.commit()
     conn.close()
 
-def save_star_system(system: StarSystem):
-    """Insert or update a star system and its planets."""
+
+def save_system(system: StarSystem):
+    """
+    Insert or update a star system and all its planets.
+    If a system already exists, it’s updated (partial save).
+    """
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
-    # Insert or update the star system
+    # insert or update the star system
     c.execute("""
-        INSERT OR IGNORE INTO star_systems (name, star_type, distance_ly)
+        INSERT INTO star_systems (name, star_type, distance_ly)
         VALUES (?, ?, ?)
         ON CONFLICT(name) DO UPDATE SET
             star_type = excluded.star_type,
             distance_ly = excluded.distance_ly
     """, (system.name, system.star_type, system.distance_from_earth))
 
-    # Get the system id
-    c.execute("SELECT id FROM star_systems WHERE name = ?", (system.name,))
-    system_id = c.fetchone()[0]
+    # clear existing planets for this system before re-inserting
+    c.execute("DELETE FROM planets WHERE system_name = ?", (system.name,))
 
-    # Load existing planet names for this system
-    c.execute("SELECT name FROM planets WHERE system_id = ?", (system_id,))
-    existing_planets = {row[0] for row in c.fetchall()}
-
-    # Insert or update planets
-    for p in system.planets:
-        if p.name in existing_planets:
-            # update existing planet
-            c.execute("""
-                UPDATE planets
-                SET mass = ?, radius = ?, orbit_distance = ?
-                WHERE name = ? AND system_id = ?
-            """, (p.mass, p.radius, p.orbit_distance, p.name, system_id))
-        else:
-            # insert new planet
-            c.execute("""
-                INSERT INTO planets (name, mass, radius, orbit_distance, system_id)
-                VALUES (?, ?, ?, ?, ?)
-            """, (p.name, p.mass, p.radius, p.orbit_distance, system_id))
-
-    # Optionally: delete planets that no longer exist in memory
-    # (uncomment this block if you want deletions to sync automatically)
-    #
-    # for old_name in existing_planets - {p.name for p in system.planets}:
-    #     c.execute("DELETE FROM planets WHERE name = ? AND system_id = ?", (old_name, system_id))
+    # add the planets
+    for planet in system.planets:
+        c.execute("""
+            INSERT INTO planets (name, mass, radius, orbit_distance, system_name)
+            VALUES (?, ?, ?, ?, ?)
+        """, (planet.name, planet.mass, planet.radius, planet.orbit_distance, system.name))
 
     conn.commit()
     conn.close()
 
 
-
-def load_all_systems():
-    """Load all star systems and their planets."""
+def load_systems():
+    """Load all systems and planets from the database."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
+    c.execute("SELECT name, star_type, distance_ly FROM star_systems")
     systems = {}
-    for row in c.execute("SELECT id, name, star_type, distance_ly FROM star_systems"):
-        sys_id, name, star_type, distance = row
-        systems[sys_id] = StarSystem(name, star_type, distance)
+    for name, star_type, distance in c.fetchall():
+        systems[name] = StarSystem(name, star_type, distance)
 
-    for row in c.execute("SELECT name, mass, radius, orbit_distance, system_id FROM planets"):
-        name, mass, radius, orbit, sys_id = row
+    c.execute("SELECT name, mass, radius, orbit_distance, system_name FROM planets")
+    for name, mass, radius, orbit, system_name in c.fetchall():
         planet = Planet(name, mass, radius, orbit)
-        if sys_id in systems:
-            systems[sys_id].add_planet(planet)
+        if system_name in systems:
+            systems[system_name].add_planet(planet)
 
     conn.close()
     return list(systems.values())
 
 
-def update_planet(system_name, planet: Planet):
-    """Update a single planet’s data without re-saving the whole system."""
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT id FROM star_systems WHERE name = ?", (system_name,))
-    result = c.fetchone()
-    if not result:
-        raise ValueError(f"System {system_name} not found.")
-    system_id = result[0]
+def get_planets_by_type(planet_type: str):
+    """Return all planets that match the given type (based on classification logic)."""
+    systems = load_systems()
+    results = []
+    for s in systems:
+        for p in s.planets:
+            if p.type().lower() == planet_type.lower():
+                results.append((s.name, p))
+    return results
 
-    c.execute("""
-        UPDATE planets
-        SET mass = ?, radius = ?, orbit_distance = ?
-        WHERE name = ? AND system_id = ?
-    """, (planet.mass, planet.radius, planet.orbit_distance, planet.name, system_id))
 
-    conn.commit()
-    conn.close()
+# Initialize the database when module is first imported
+init_db()

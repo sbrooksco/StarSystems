@@ -1,6 +1,6 @@
 from models import StarSystem, Planet
 from utils import load_from_csv, save_to_csv, search_planets_by_mass, search_planets_by_type
-from database import save_star_system, load_all_systems, init_db
+from database import save_system, load_systems, init_db
 
 
 # -----------------------------
@@ -34,7 +34,7 @@ def create_star_system():
 def main():
 
     init_db()
-    systems = load_all_systems()
+    systems = load_systems()
     print(f"loaded {len(systems)} star systems from database")
 
     while True:
@@ -93,10 +93,10 @@ def main():
                 print("No planets match that type.")
         elif choice == "7":
             for system in systems:
-                save_star_system(system)
+                save_system(system)
             print("All systems saved to database.")
         elif choice == "8":
-            systems = load_all_systems()
+            systems = load_systems()
             print(f"Reloaded {len(systems)} systems from database.")
         elif choice == "9":
             print("Goodbye!")
