@@ -3,10 +3,9 @@ Project Layout
 ```
 StarSystems/
 ├── star_system_app.py          # CLI (text-based) application entry point
-├── star_system_gui.py          # (optional) Tkinter GUI entry point
 ├── models.py                   # Contains StarSystem and Planet classes
 ├── database.py                 # Handles SQLite persistence
-├── utils.py                    # (optional) for CSV import/export, helper functions
+├── utils.py                    # CSV import/export, helper functions
 │
 ├── data/
 │   ├── star_systems.db         # SQLite database file
@@ -16,11 +15,11 @@ StarSystems/
 │   ├── __init__.py
 │   ├── test_models.py          # Unit tests for Planet and StarSystem
 │   ├── test_database.py        # Tests for persistence layer
-│   ├── test_utils.py           # (optional) Tests for CSV import/export
+│   ├── test_utils.py           # Tests for CSV import/export
 │
 ├── requirements.txt            # List of dependencies
 ├── README.md                   # Project description and setup instructions
-└── .gitignore                  # (if using Git) ignore db, pycache, etc.
+└── .gitignore                  # Ignore db, pycache, etc.
 
 
 ```
