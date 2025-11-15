@@ -33,7 +33,7 @@ python3 star_system_cli.py
 | **`requirements.txt`**                | Lists *exact dependencies* for your runtime environment (used for deployment or reproducibility). | Developers, CI/CD, production | `flask==2.3.2`, `sqlalchemy>=2.0`               |
 | **`setup.py`** / **`pyproject.toml`** | Define *metadata and dependencies for packaging your project as a Python module or tool*.         | `pip`, `setuptools`, `build`  | Name, version, dependencies, entry points, etc. |
 
-### TLDR
+### Summary
 Use requirements.txt to describe your working environment.
 
 Use setup.py + pyproject.toml` to make your project installable and shareable.
