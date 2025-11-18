@@ -33,9 +33,10 @@ StarSystems/
 ├── models.py                   # Contains StarSystem and Planet classes
 ├── database.py                 # Handles SQLite persistence
 ├── utils.py                    # CSV import/export, helper functions
+├── web_data.py                 # Web import/export, helper functions
 │
 ├── data/
-│   ├── star_systems.db         # SQLite database file
+│   ├── star_systems.db         # SQLite database file (not stored in git)
 │   ├── sample_data.csv         # Example CSV input
 │
 ├── tests/
@@ -43,6 +44,7 @@ StarSystems/
 │   ├── test_models.py          # Unit tests for Planet and StarSystem
 │   ├── test_database.py        # Tests for persistence layer
 │   ├── test_utils.py           # Tests for CSV import/export
+│   ├── test_import_from_web.py # Tests for web import
 │
 ├── requirements.txt            # List of dependencies
 ├── README.md                   # Project description and setup instructions
