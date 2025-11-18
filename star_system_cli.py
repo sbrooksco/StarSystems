@@ -33,6 +33,8 @@ def main():
     export_parser = subparsers.add_parser("export", help="Export systems to a CSV file")
     export_parser.add_argument("path", help="CSV file path to save")
 
+    import_web_parser = subparsers.add_parser("import-web", help="Import systems data from NASA")
+
     # -----------------------------
     # search commands
     # -----------------------------
@@ -75,6 +77,10 @@ def main():
     elif args.command == "export":
         app.save_to_csv(args.path)
 
+    elif args.command == "import-web":
+        print ("Importing systems from NASA")
+        app.import_from_web()
+
     elif args.command == "search-mass":
         results = app.search_by_mass(args.min_mass)
         if results:
@@ -98,11 +104,7 @@ def main():
         app.load_from_db()
 
     elif args.command == "list":
-        systems = app.list_systems()
-        if not systems:
-            print("No star systems available.")
-        for s in systems:
-            print(s)
+        app.list_systems()
 
 
 if __name__ == "__main__":

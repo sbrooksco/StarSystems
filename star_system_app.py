@@ -1,12 +1,13 @@
 from models import StarSystem, Planet
 from utils import load_from_csv, save_to_csv, search_planets_by_mass, search_planets_by_type
 from database import save_system, load_systems, init_db
+from web_data import get_web_data
 
 class StarSystemApp:
 
     def __init__(self):
         init_db()
-        self.systems = load_systems()
+        self.systems = load_systems() or [] # If you want to autoload from the database.
         print(f"loaded {len(self.systems)} star systems from database")
 
     """
@@ -36,6 +37,24 @@ class StarSystemApp:
         self.systems.extend(imported)
         print(f"Imported {len(imported)} systems from {path}")
 
+        """
+        Fetches star systems from the web and adds them to self.systems.
+        """
+    def import_from_web(self):
+        new_systems = get_web_data()
+        if new_systems:
+            # Avoid duplicates by system name
+            existing_names = {s.name for s in self.systems}
+            added_count = 0
+            for s in new_systems:
+                if s.name not in existing_names:
+                    self.systems.append(s)
+                    added_count += 1
+            print(f"Imported {added_count} new star systems from the web.")
+            self.save_to_db()
+        else:
+            print("No data fetched from the web.")
+
     def list_systems(self):
         if not self.systems:
             print("No star systems yet.")
@@ -43,8 +62,9 @@ class StarSystemApp:
         for s in self.systems:
             print("\n" + str(s))
 
-    def save_to_csv(self):
-        path = input("Enter file path to save CSV: ")
+    def save_to_csv(self, path=None):
+        if path is None:
+            path = input("Enter file path to save CSV: ")
         try:
             save_to_csv(self.systems, path)
             print(f"Data saved to {path}")
@@ -70,6 +90,10 @@ class StarSystemApp:
         else:
             print("No planets match that type.")
 
+    """
+    Improve the efficiency here. Only write new systems or use
+    a batch write.
+    """
     def save_to_db(self):
         for system in self.systems:
             save_system(system)

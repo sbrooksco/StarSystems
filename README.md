@@ -1,4 +1,30 @@
 # StarSystems
+
+A command line tool for managing, searching, and importing exoplanet star systems.
+## Setup
+
+### Clone the repository:
+git clone <your-repo-url>
+cd star-system-classifier
+
+### Create a virtual environment:
+
+python3 -m venv .venv
+
+source .venv/bin/activate # macOS/Linux
+
+.venv\Scripts\activate # Windows
+
+### Install Dependencies:
+pip install -r requirements.txt
+
+### List available commands:
+python star_system_cli.py --help
+
+#### TODO 
+Use setup.py or pyproject.toml to make it cleaner\
+Use Flask for a web interface, not tkinter.
+
 ## Project Layout
 ```
 StarSystems/
@@ -76,13 +102,5 @@ At project root:
 ```
 % python3 -m unittest discover -s tests
 ```
-
-WHAT IS NEXT?
-
-1. How about a web app front end?
-
-    Use Flask for a web interface, not tkinter.
-
-2. Also, figure out a requirements.txt file.
 
 
