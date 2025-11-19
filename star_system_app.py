@@ -1,6 +1,7 @@
+import sqlite3
 from models import StarSystem, Planet
 from utils import load_from_csv, save_to_csv, search_planets_by_mass, search_planets_by_type
-from database import save_system, load_systems, init_db
+from database import save_system, load_systems, init_db, get_connection
 from web_data import get_web_data
 
 class StarSystemApp:
@@ -90,14 +91,35 @@ class StarSystemApp:
         else:
             print("No planets match that type.")
 
-    """
-    Improve the efficiency here. Only write new systems or use
-    a batch write.
-    """
     def save_to_db(self):
+        conn = get_connection()
+        c = conn.cursor()
+
+        systems_saved = 0
+        failed_systems = 0
+
         for system in self.systems:
-            save_system(system)
-        print("All systems saved to database.")
+            try:
+                save_system(system)  # this may do inserts/updates for multiple planets
+                systems_saved += 1
+
+                # Commit every 50 systems (reduces rollback impact)
+                if systems_saved % 50 == 0:
+                    conn.commit()
+
+            except sqlite3.IntegrityError as e:
+                failed_systems += 1
+                print(f"Skipped entire system '{system.name}': {e}")
+
+            except Exception as e:
+                failed_systems += 1
+                print(f"Unexpected error saving '{system.name}': {e}")
+
+        # Final commit for remaining changes
+        conn.commit()
+        conn.close()
+
+        print(f"Finished saving database: {systems_saved} systems saved, {failed_systems} failed.")
 
     def load_from_db(self):
         self.systems = load_systems()

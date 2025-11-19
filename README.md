@@ -106,3 +106,11 @@ At project root:
 ```
 
 
+Coverage: (In venv to avoid installing in your environment)
+pip install coverage
+coverage run -m unittest discover -s tests
+
+coverage report -m
+
+
+

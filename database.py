@@ -1,12 +1,15 @@
+import os
 import sqlite3
 from models import StarSystem, Planet
 
-DB_FILE = "data/star_systems.db"
+# DB_FILE = "data/star_systems.db"
+# Allow overriding via environment variable for tests and CI
+DB_PATH = os.getenv("STAR_SYSTEMS_DB", "star_systems.db")
 
 
 def init_db():
     """Create tables if they don’t exist yet."""
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     # star_systems: name is unique so ON CONFLICT(name) works
@@ -27,6 +30,7 @@ def init_db():
         radius REAL,
         orbit_distance REAL,
         system_name TEXT,
+        UNIQUE(name, system_name),
         FOREIGN KEY(system_name) REFERENCES star_systems(name)
     )
     """)
@@ -34,16 +38,23 @@ def init_db():
     conn.commit()
     conn.close()
 
+def get_connection():
+    """Return a sqlite3 connection to the DB."""
+    return sqlite3.connect(DB_PATH)
 
-def save_system(system: StarSystem):
+def save_system(system: StarSystem, conn=None):
     """
     Insert or update a star system and all its planets.
-    If a system already exists, it’s updated (partial save).
+    If conn is provided, use it. Otherwise, open a new connection.
     """
-    conn = sqlite3.connect(DB_FILE)
+    own_conn = False
+    if conn is None:
+        conn = sqlite3.connect(DB_PATH)
+        own_conn = True
+
     c = conn.cursor()
 
-    # insert or update the star system
+    # Insert or update star system
     c.execute("""
         INSERT INTO star_systems (name, star_type, distance_ly)
         VALUES (?, ?, ?)
@@ -52,23 +63,26 @@ def save_system(system: StarSystem):
             distance_ly = excluded.distance_ly
     """, (system.name, system.star_type, system.distance_from_earth))
 
-    # clear existing planets for this system before re-inserting
-    c.execute("DELETE FROM planets WHERE system_name = ?", (system.name,))
-
-    # add the planets
+    # Insert or update planets
     for planet in system.planets:
         c.execute("""
             INSERT INTO planets (name, mass, radius, orbit_distance, system_name)
             VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(name, system_name)
+            DO UPDATE SET
+                mass = excluded.mass,
+                radius = excluded.radius,
+                orbit_distance = excluded.orbit_distance
         """, (planet.name, planet.mass, planet.radius, planet.orbit_distance, system.name))
 
-    conn.commit()
-    conn.close()
+    if own_conn:
+        conn.commit()
+        conn.close()
 
 
 def load_systems():
     """Load all systems and planets from the database."""
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     c.execute("SELECT name, star_type, distance_ly FROM star_systems")
@@ -95,7 +109,3 @@ def get_planets_by_type(planet_type: str):
             if p.type().lower() == planet_type.lower():
                 results.append((s.name, p))
     return results
-
-
-# Initialize the database when module is first imported
-init_db()
