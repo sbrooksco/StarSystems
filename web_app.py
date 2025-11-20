@@ -1,8 +1,12 @@
 from fastapi import FastAPI
-from database import load_systems
+from database import load_systems, init_db
 from star_system_app import StarSystemApp
 
 app = FastAPI()
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 @app.get("/")
 def home():

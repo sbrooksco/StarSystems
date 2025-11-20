@@ -4,7 +4,7 @@ from models import StarSystem, Planet
 
 # DB_FILE = "data/star_systems.db"
 # Allow overriding via environment variable for tests and CI
-DB_PATH = os.getenv("STAR_SYSTEMS_DB", "star_systems.db")
+DB_PATH = os.getenv("STAR_SYSTEMS_DB", "/data/star_systems.db")
 
 
 def init_db():
