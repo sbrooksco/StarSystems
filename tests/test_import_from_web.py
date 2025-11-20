@@ -1,59 +1,79 @@
+# tests/test_import_from_web.py
 import unittest
 from unittest.mock import patch
-from star_system_app import StarSystemApp
+import tempfile
+import os
+import importlib
 from models import StarSystem, Planet
-
 
 class TestImportFromWeb(unittest.TestCase):
 
+    def setUp(self):
+        # Temporary DB file for this test
+        fd, self.temp_db_path = tempfile.mkstemp(suffix=".sqlite")
+        os.close(fd)
+        os.environ["STAR_SYSTEMS_DB"] = self.temp_db_path
+
+        # Import & reload database module after env var
+        import database
+        import star_system_app
+        importlib.reload(database)
+        importlib.reload(star_system_app)
+
+        # Initialize DB tables
+        database.init_db()
+
+        self.app_cls = star_system_app.StarSystemApp
+        self.db = database
+
+    def tearDown(self):
+        try:
+            os.remove(self.temp_db_path)
+        except OSError:
+            pass
+        os.environ.pop("STAR_SYSTEMS_DB", None)
+
     @patch("star_system_app.get_web_data")
     def test_import_from_web_adds_new_systems(self, mock_get_web_data):
-        # Arrange: mock web data
         mock_system = StarSystem("Mock System", "G2V", 10)
         mock_system.add_planet(Planet("MockPlanet", 1.0, 1.0, 1.0))
         mock_get_web_data.return_value = [mock_system]
 
-        app = StarSystemApp()
-        app.systems = []  # isolate test from DB
+        app = self.app_cls()
+        app.systems = []
 
-        # Act
         app.import_from_web()
 
-        # Assert
         self.assertEqual(len(app.systems), 1)
         self.assertEqual(app.systems[0].name, "Mock System")
+        self.assertEqual(len(app.systems[0].planets), 1)
 
     @patch("star_system_app.get_web_data")
     def test_import_from_web_ignores_duplicates(self, mock_get_web_data):
-        # Arrange: existing system
         existing = StarSystem("Existing", "K1", 12)
-        app = StarSystemApp()
+        app = self.app_cls()
         app.systems = [existing]
 
-        # Mock supports duplicate name
         duplicate = StarSystem("Existing", "G2V", 10)
         mock_get_web_data.return_value = [duplicate]
 
-        # Act
         app.import_from_web()
 
-        # Assert
         self.assertEqual(len(app.systems), 1)
         self.assertEqual(app.systems[0].name, "Existing")
 
     @patch("star_system_app.get_web_data")
     def test_import_from_web_no_data(self, mock_get_web_data):
-        # Arrange
-        app = StarSystemApp()
+        app = self.app_cls()
         app.systems = []
         mock_get_web_data.return_value = None
 
-        # Act
         app.import_from_web()
 
-        # Assert
         self.assertEqual(len(app.systems), 0)
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
