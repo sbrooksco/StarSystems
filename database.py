@@ -10,7 +10,7 @@ if not DB_PATH:
     if os.getenv("RENDER") == "true":
         DB_PATH = "/tmp/star_systems.db"  # writable path on Render
     else:
-        DB_PATH = "/data/star_systems.db"  # local dev default
+        DB_PATH = "data/star_systems.db"  # local dev default
 
 
 def init_db(db_path=DB_PATH):
@@ -90,21 +90,32 @@ def save_system(system: StarSystem, conn=None):
 
 
 def load_systems(db_path=None):
-    """Load all systems and planets from the database."""
+    """Load all star systems and their planets from the database."""
     path = db_path or DB_PATH
     conn = sqlite3.connect(path)
     c = conn.cursor()
 
-    c.execute("SELECT name, star_type, distance_ly FROM star_systems")
     systems = {}
-    for name, star_type, distance in c.fetchall():
-        systems[name] = StarSystem(name, star_type, distance)
 
+    # Load star systems
+    c.execute("SELECT name, star_type, distance_ly FROM star_systems")
+    for name, star_type, distance_ly in c.fetchall():
+        # Ensure values exist
+        star_type = star_type if star_type else "Unknown"
+        distance_ly = float(distance_ly) if distance_ly else 0.0
+
+        systems[name] = StarSystem(name, star_type, distance_ly)
+
+    # Load planets and attach to systems
     c.execute("SELECT name, mass, radius, orbit_distance, system_name FROM planets")
-    for name, mass, radius, orbit, system_name in c.fetchall():
-        planet = Planet(name, mass, radius, orbit)
-        if system_name in systems:
-            systems[system_name].add_planet(planet)
+    for p_name, mass, radius, orbit, sys_name in c.fetchall():
+        mass = float(mass) if mass else 0.0
+        radius = float(radius) if radius else 0.0
+        orbit = float(orbit) if orbit else 0.0
+
+        planet = Planet(p_name, mass, radius, orbit)
+        if sys_name in systems:
+            systems[sys_name].add_planet(planet)
 
     conn.close()
     return list(systems.values())
