@@ -18,6 +18,14 @@ class Planet:
         else:
             return "Gas Giant"
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "mass": self.mass,
+            "radius": self.radius,
+            "orbit_distance": self.orbit_distance
+        }
+
     def __str__(self):
         return (
             f"{self.name}: Mass={self.mass} Earth masses, "
@@ -35,6 +43,14 @@ class StarSystem:
 
     def add_planet(self, planet):
         self.planets.append(planet)
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "star_type": self.star_type,
+            "distance_from_earth": self.distance_from_earth,
+            "planets": [p.to_dict() for p in self.planets]
+        }
 
     def __str__(self):
         planets_info = "\n ".join(str(p) for p in self.planets)
