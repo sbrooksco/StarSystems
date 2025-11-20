@@ -2,17 +2,24 @@ import os
 import sqlite3
 from models import StarSystem, Planet
 
-# DB_FILE = "data/star_systems.db"
-# Allow overriding via environment variable for tests and CI
-DB_PATH = os.getenv("STAR_SYSTEMS_DB", "/data/star_systems.db")
+# -----------------------------
+# Determine default database path
+# -----------------------------
+DB_PATH = os.getenv("STAR_SYSTEMS_DB")
+if not DB_PATH:
+    if os.getenv("RENDER") == "true":
+        DB_PATH = "/tmp/star_systems.db"  # writable path on Render
+    else:
+        DB_PATH = "/data/star_systems.db"  # local dev default
 
 
-def init_db():
+def init_db(db_path=DB_PATH):
     """Create tables if they don’t exist yet."""
-    conn = sqlite3.connect(DB_PATH)
+    path = db_path or DB_PATH
+    conn = sqlite3.connect(path)
     c = conn.cursor()
 
-    # star_systems: name is unique so ON CONFLICT(name) works
+    # star_systems table
     c.execute("""
     CREATE TABLE IF NOT EXISTS star_systems (
         name TEXT PRIMARY KEY,
@@ -21,7 +28,7 @@ def init_db():
     )
     """)
 
-    # planets table linked to star_systems by system_name
+    # planets table
     c.execute("""
     CREATE TABLE IF NOT EXISTS planets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,9 +45,11 @@ def init_db():
     conn.commit()
     conn.close()
 
-def get_connection():
+
+def get_connection(db_path=None):
     """Return a sqlite3 connection to the DB."""
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect(db_path or DB_PATH)
+
 
 def save_system(system: StarSystem, conn=None):
     """
@@ -80,9 +89,10 @@ def save_system(system: StarSystem, conn=None):
         conn.close()
 
 
-def load_systems():
+def load_systems(db_path=None):
     """Load all systems and planets from the database."""
-    conn = sqlite3.connect(DB_PATH)
+    path = db_path or DB_PATH
+    conn = sqlite3.connect(path)
     c = conn.cursor()
 
     c.execute("SELECT name, star_type, distance_ly FROM star_systems")
@@ -100,12 +110,13 @@ def load_systems():
     return list(systems.values())
 
 
-def get_planets_by_type(planet_type: str):
+def get_planets_by_type(planet_type: str, db_path=None):
     """Return all planets that match the given type (based on classification logic)."""
-    systems = load_systems()
+    systems = load_systems(db_path=db_path)
     results = []
     for s in systems:
         for p in s.planets:
             if p.type().lower() == planet_type.lower():
                 results.append((s.name, p))
     return results
+

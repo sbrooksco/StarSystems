@@ -1,12 +1,14 @@
 from fastapi import FastAPI
-from database import load_systems, init_db
+from database import load_systems, init_db, DB_PATH
 from star_system_app import StarSystemApp
 
-app = FastAPI()
+app = FastAPI(title="Star Systems API")
+app_logic = StarSystemApp()
 
 @app.on_event("startup")
 def on_startup():
-    init_db()
+    init_db(DB_PATH)
+    print(f"Database initialized at {DB_PATH}")
 
 @app.get("/")
 def home():
@@ -18,6 +20,5 @@ def systems():
 
 @app.post("/import")
 def import_from_web():
-    app_logic = StarSystemApp()
     new_count = app_logic.import_from_web()
     return {"imported": new_count}
