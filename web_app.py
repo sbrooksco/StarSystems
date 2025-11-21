@@ -49,7 +49,7 @@ def ui(request: Request):
     """
 
     for sys in systems:
-        html += f"<li>{sys.name} ({sys.star_type}) - {sys.distance_from_earth} ly</li>"
+        html += f"<li>{sys.name} ({sys.star_type}) - {sys.distance_from_earth:.2f} ly</li>"
 
     html += """
         </ul>
