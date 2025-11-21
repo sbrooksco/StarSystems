@@ -23,7 +23,7 @@ python star_system_cli.py --help
 
 #### TODO 
 Use setup.py or pyproject.toml to make it cleaner\
-Use Flask for a web interface, not tkinter.
+Use Flask for a web interface or a simple web app.
 
 ## Project Layout
 ```
@@ -33,7 +33,9 @@ StarSystems/
 ├── models.py                   # Contains StarSystem and Planet classes
 ├── database.py                 # Handles SQLite persistence
 ├── utils.py                    # CSV import/export, helper functions
+├── web_app.py                  # Web application FAST API definition
 ├── web_data.py                 # Web import/export, helper functions
+├── Procfile                    # Configure uvicorn when deploying to Render  
 │
 ├── data/
 │   ├── star_systems.db         # SQLite database file (not stored in git)
@@ -41,10 +43,12 @@ StarSystems/
 │
 ├── tests/
 │   ├── __init__.py
-│   ├── test_models.py          # Unit tests for Planet and StarSystem
 │   ├── test_database.py        # Tests for persistence layer
+│   ├── test_import_from_web.py # Tests for importing web data
+│   ├── test_models.py          # Unit tests for Planet and StarSystem
 │   ├── test_utils.py           # Tests for CSV import/export
-│   ├── test_import_from_web.py # Tests for web import
+│   ├── test_web_data.py        # Tests parsing web data
+
 │
 ├── requirements.txt            # List of dependencies
 ├── README.md                   # Project description and setup instructions
@@ -54,12 +58,7 @@ StarSystems/
 ```
 python3 star_system_cli.py
 ```
-## Purposes of requirements.txt and setup.py/pyproject.toml:
-
-| File                                  | Purpose                                                                                           | Used By                       | Typical Contents                                |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------------------- |
-| **`requirements.txt`**                | Lists *exact dependencies* for your runtime environment (used for deployment or reproducibility). | Developers, CI/CD, production | `flask==2.3.2`, `sqlalchemy>=2.0`               |
-| **`setup.py`** / **`pyproject.toml`** | Define *metadata and dependencies for packaging your project as a Python module or tool*.         | `pip`, `setuptools`, `build`  | Name, version, dependencies, entry points, etc. |
+### requirements.txt or setup.py/pyproject.toml:
 
 ### Summary
 Use requirements.txt to describe your working environment.
@@ -98,16 +97,15 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 ++++++++++++++++++++++++++++
 
-Running unit tests:
+#### Running unit tests:
 
-At project root:
+At project root (invenv):
 ```
-% python3 -m unittest discover -s tests
+% python -m unittest discover -s tests
 ```
 
-
-Coverage: (In venv to avoid installing in your environment)
-pip install coverage
+#### Coverage: (In venv to avoid installing in your environment)
+pip install coverage\
 coverage run -m unittest discover -s tests
 
 coverage report -m
