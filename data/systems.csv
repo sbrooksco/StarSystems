@@ -1,0 +1,4 @@
+system_name,star_type,distance_ly,planet_name,mass,radius,orbit_distance
+Solar System,G2V,0,Earth,1,1,1
+Solar System,G2V,0,Mars,0.107,0.53,1.52
+Alpha Centauri,G2V,4.37,Proxima b,1.27,1.1,0.05

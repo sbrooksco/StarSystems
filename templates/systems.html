@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Star Systems</h2>
+
+<!-- Search form -->
+<form id="searchForm" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="number" step="0.1" class="form-control"
+               id="distance" placeholder="Max distance (ly)">
+    </div>
+    <div class="col-auto">
+        <input type="text" class="form-control"
+               id="ptype" placeholder="Planet type (optional)">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    <div class="col-auto">
+        <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
+    </div>
+</form>
+
+<!-- Systems table -->
+<table class="table table-striped" id="systemsTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Star Type</th>
+            <th>Distance (ly)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in systems %}
+        <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.star_type }}</td>
+            <td>{{ "%.2f"|format(s.distance_from_earth) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- No Results -->
+<p id="noResults" class="text-muted" style="display:none;">
+    No systems found matching your filters.
+</p>
+
+<!-- Import form -->
+<h3 class="mt-4">Import New Data</h3>
+<form id="importForm">
+    <input type="password" id="key"
+           placeholder="Enter Admin Key"
+           required class="form-control mb-2"
+           style="max-width: 300px;">
+    <button type="submit" class="btn btn-primary">Import</button>
+</form>
+
+<script>
+// -------- Import Event ----------
+document.getElementById("importForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = document.getElementById("key").value;
+
+    try {
+        const res = await fetch("/import", {
+            method: "POST",
+            headers: { "admin-key": key }
+        });
+
+        const data = await res.json();
+        alert(`Imported ${data.imported} new systems.`);
+        location.reload();
+    } catch {
+        alert("Import failed.");
+    }
+});
+
+// -------- Search Event ----------
+document.getElementById("searchForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const distance = document.getElementById("distance").value;
+    const ptype = document.getElementById("ptype").value;
+
+    const params = new URLSearchParams();
+    if (distance) params.append("max_distance", distance);
+    if (ptype) params.append("planet_type", ptype);
+
+    const res = await fetch("/search?" + params.toString());
+    const data = await res.json();
+
+    const tbody = document.querySelector("#systemsTable tbody");
+    const noResults = document.getElementById("noResults");
+
+    tbody.innerHTML = "";
+    if (data.length === 0) {
+        noResults.style.display = "block";
+        return;
+    }
+    noResults.style.display = "none";
+
+    data.forEach(s => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.star_type}</td>
+                <td>${Number(s.distance_from_earth).toFixed(2)}</td>
+            </tr>`;
+    });
+});
+
+// -------- Reset Button ----------
+document.getElementById("resetBtn").addEventListener("click", () => {
+    location.reload();
+});
+</script>
+
+{% endblock %}
