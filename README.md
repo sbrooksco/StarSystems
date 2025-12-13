@@ -1,105 +1,306 @@
 # StarSystems
 
-A command line tool for managing, searching, and importing exoplanet star systems.
-## Setup
+An exoplanet database and search tool that fetches data from the NASA Exoplanet Archive, stores it locally in SQLite, and provides both CLI and web interfaces for searching and exploring star systems.
 
-### Clone the repository:
-git clone <your-repo-url>
-cd star-system-classifier
+## Features
 
-### Create a virtual environment:
+- **Automatic Data Sync**: Fetches confirmed exoplanet data from NASA Exoplanet Archive
+- **Local Database**: SQLite storage for fast, offline querying
+- **Advanced Filtering**: Search by distance, spectral type, and planet presence
+- **Dual Interface**: Command-line tool and beautiful web application
+- **Professional Architecture**: Clean separation of concerns with Repository and Service patterns
+- **Type-Safe**: Full type hints throughout the codebase
 
-python3 -m venv .venv
 
-source .venv/bin/activate # macOS/Linux
+## Installation
 
-.venv\Scripts\activate # Windows
+### From Source
 
-### Install Dependencies:
+```bash
+# Clone the repository
+git clone https://github.com/sbrooksco/StarSystems.git
+cd StarSystems
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package
+pip install -e .
+
+# Or install dependencies only
 pip install -r requirements.txt
+```
+### Development Installation
 
-### List available commands:
-python star_system_cli.py --help
+```bash
+pip install -e ".[dev]"
+# Or
+pip install -r requirements-dev.txt
+```
 
-#### TODO 
-Use setup.py or pyproject.toml to make it cleaner\
-Use Flask for a web interface or a simple web app.
+## Quick Start
 
+### Command-Line Interface
+
+```bash
+# Initialize the database
+starsystems init
+
+# Sync data from NASA Exoplanet Archive
+starsystems sync
+
+# List all systems
+starsystems list
+
+# Search with filters
+starsystems search --distance 100 --spectral-type G K M --has-planets
+
+# Get system details
+starsystems info "Kepler-186"
+
+# Show statistics
+starsystems stats
+```
+
+### Web Application
+
+```bash
+# Start the web server
+uvicorn starsystems.web.app:app --reload
+
+# Or use the module directly
+python -m uvicorn starsystems.web.app:app --reload
+```
+
+Then visit http://localhost:8000
+
+### Programmatic Usage
+
+```python
+from starsystems import (
+    DatabaseConnection, 
+    StarSystemRepository,
+    ExoplanetService,
+    SearchService
+)
+
+# Initialize components
+db = DatabaseConnection()
+db.initialize_schema()
+
+repository = StarSystemRepository(db)
+exoplanet_service = ExoplanetService()
+search_service = SearchService()
+
+# Fetch and save data
+systems = exoplanet_service.fetch_systems()
+repository.save_batch(systems)
+
+# Search with filters
+all_systems = repository.find_all()
+nearby_g_stars = search_service.filter_systems(
+    all_systems,
+    max_distance=50,
+    spectral_types=['G'],
+    has_planets=True
+)
+
+# Get statistics
+stats = search_service.get_statistics(all_systems)
+print(f"Total systems: {stats['total_systems']}")
+```
 ## Project Layout
 ```
-StarSystems/
-├── star_system_app.py          # StarSystems application class
-├── star_system_cli.py          # CLI (text-based) application entry point
-├── models.py                   # Contains StarSystem and Planet classes
-├── database.py                 # Handles SQLite persistence
-├── utils.py                    # CSV import/export, helper functions
-├── web_app.py                  # Web application FAST API definition
-├── web_data.py                 # Web import/export, helper functions
-├── Procfile                    # Configure uvicorn when deploying to Render  
-│
-├── data/
-│   ├── star_systems.db         # SQLite database file (not stored in git)
-│   ├── sample_data.csv         # Example CSV input
-│
-├── tests/
-│   ├── __init__.py
-│   ├── test_database.py        # Tests for persistence layer
-│   ├── test_import_from_web.py # Tests for importing web data
-│   ├── test_models.py          # Unit tests for Planet and StarSystem
-│   ├── test_utils.py           # Tests for CSV import/export
-│   ├── test_web_data.py        # Tests parsing web data
+starsystems/
+├── src/
+│   └── starsystems/
+│       ├── models/              # Domain models (Planet, StarSystem)
+│       ├── database/            # Data persistence (Repository pattern)
+│       ├── services/            # Business logic (ExoplanetService, SearchService)
+│       ├── cli/                 # Command-line interface
+│       └── web/                 # Web application (FastAPI)
+│           └── templates/       # HTML templates
+├── tests/                       # Test suite
+├── data/                        # Database storage (gitignored)
+├── scripts/                     # Utility scripts
+├── pyproject.toml              # Modern Python packaging
+└── requirements.txt            # Dependencies
+```
+## Architecture
 
-│
-├── requirements.txt            # List of dependencies
-├── README.md                   # Project description and setup instructions
-└── .gitignore                  # Ignore db, pycache, etc.
-```
-## Running from the command line:
-```
-python3 star_system_cli.py
-```
-### requirements.txt or setup.py/pyproject.toml:
+### Layers
 
-### Summary
-Use requirements.txt to describe your working environment.
+1. **Models Layer** (`models/`)
+   - Pure domain objects: `Planet`, `StarSystem`
+   - Business logic for classification and representation
+   - No dependencies on other layers
 
-Use setup.py + pyproject.toml` to make your project installable and shareable.
+2. **Database Layer** (`database/`)
+   - `DatabaseConnection`: Manages SQLite connections
+   - `StarSystemRepository`: CRUD operations (Repository pattern)
+   - Isolates data access from business logic
 
-### To install it as a local cli do the following at the project root (where setup.py resides)
-```
-pip install -e .  (Or just pip install . if you don't want editable mode)
-```
-Then you can run the command:
-```
-starcli create "Epsilon Eridani" K2V 10.5 --planet "Epsilon Eridani b" 1.5 1.1 3.4 
-```
-or
-```
-starcli list
+3. **Services Layer** (`services/`)
+   - `ExoplanetService`: Fetches data from NASA API
+   - `SearchService`: Handles filtering and search logic
+   - Contains all business logic
+
+4. **Interface Layers**
+   - `cli/`: Command-line interface using argparse
+   - `web/`: FastAPI web application with Jinja2 templates
+
+### Design Patterns
+
+- **Repository Pattern**: Clean separation between data access and business logic
+- **Dependency Injection**: Services receive dependencies through constructors
+- **Service Layer**: Business logic isolated from presentation
+- **Single Responsibility**: Each module has one clear purpose
+
+## CLI Commands
+
+```bash
+# Initialize database
+starsystems init
+
+# Sync data from NASA
+starsystems sync
+
+# List systems
+starsystems list [--limit N]
+
+# Search with filters
+starsystems search [OPTIONS]
+  --distance FLOAT          Maximum distance in light years
+  --spectral-type TYPE...   Spectral types (e.g., G K M)
+  --has-planets             Only systems with planets
+  --no-planets              Only systems without planets
+  --min-planets N           Minimum number of planets
+  --name TEXT               Search by system name
+
+# Get system details
+starsystems info SYSTEM_NAME
+
+# Show statistics
+starsystems stats
 ```
 
-### Install dependencies for running or developing the project
-```
-pip install -r requirements.txt
+## Web API Endpoints
+
+- `GET /systems` - Web UI with filters
+- `GET /api/systems` - JSON API for systems with query parameters
+- `GET /api/systems/{name}` - Get specific system details
+- `GET /api/stats` - Database statistics
+- `POST /admin/sync` - Manual data sync (requires admin password)
+- `GET /health` - Health check endpoint
+
+### API Query Parameters
+
+- `distance`: Maximum distance in light years
+- `spectral_type`: Comma-separated spectral types (e.g., `G,K,M`)
+- `has_planets`: Boolean filter for planet presence
+- `min_planets`: Minimum number of planets
+- `name`: Search by system name (partial match)
+- `limit`: Maximum number of results
+
+Example:
+```bash
+curl "http://localhost:8000/api/systems?distance=100&spectral_type=G,K&has_planets=true&limit=10"
 ```
 
-## Running the interactive python for testing:
+## Configuration
 
-% python3
-Python 3.13.7 (main, Aug 14 2025, 11:12:11) [Clang 17.0.0 (clang-1700.0.13.3)] on darwin
-Type "help", "copyright", "credits" or "license" for more information.
+### Environment Variables
+
+- `STAR_SYSTEMS_DB`: Database file path (default: `data/star_systems.db`)
+- `STARADMIN`: Admin password for web sync (default: `changeme`)
+- `RENDER`: Set to `"true"` for Render deployment (uses `/tmp/star_systems.db`)
+
+### Example `.env` file
+
+```bash
+STAR_SYSTEMS_DB=/path/to/database.db
+STARADMIN=your_secure_password
 ```
->>> from database import init_db, load_all_systems
->>> init_db()
->>> systems = load_all_systems()
->>> for s in systems: print(s)
+
+## Deployment
+
+### Render
+
+Create a `Procfile`:
 ```
+web: uvicorn starsystems.web.app:app --host 0.0.0.0 --port $PORT
+```
+
+Set environment variables in Render dashboard:
+- `RENDER=true`
+- `STARADMIN=<your_password>`
+
+### Docker
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY . /app
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8000
+
+CMD ["uvicorn", "starsystems.web.app:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# With coverage
+pytest --cov=starsystems --cov-report=html
+```
+
+### Code Quality
+
+```bash
+# Format code
+black src/
+
+# Lint
+ruff check src/
+
+# Type checking
+mypy src/
+```
+
+## Data Source
+
+This project uses the [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/) Planetary Systems (PS) table, which contains confirmed exoplanets and their properties.
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Author
+
+Stephen Brooks - [GitHub](https://github.com/sbrooksco)
+
+## Acknowledgments
+
+- NASA Exoplanet Archive for providing the data
+- The exoplanet research community
 
 ++++++++++++++++++++++++++++
 
 #### Running unit tests:
 
-At project root (invenv):
+At project root (in venv):
 ```
 % python -m unittest discover -s tests
 ```
@@ -109,11 +310,3 @@ pip install coverage\
 coverage run -m unittest discover -s tests
 
 coverage report -m
-
-#### Running Locally
-python3 -m venv venv\
-source venv/bin/activate\
-pip install -r requirements.txt
-
-uvicorn web_app:app --reload\
-http://127.0.0.1:8000/systems

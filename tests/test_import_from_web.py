@@ -4,7 +4,7 @@ from unittest.mock import patch
 import tempfile
 import os
 import importlib
-from models import StarSystem, Planet
+from src.starsystems.models.models import StarSystem, Planet
 
 class TestImportFromWeb(unittest.TestCase):
 
@@ -15,7 +15,7 @@ class TestImportFromWeb(unittest.TestCase):
         os.environ["STAR_SYSTEMS_DB"] = self.temp_db_path
 
         # Import & reload database module after env var
-        import database
+        from src.starsystems.database import database
         import star_system_app
         importlib.reload(database)
         importlib.reload(star_system_app)

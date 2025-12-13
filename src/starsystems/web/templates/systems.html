@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Systems Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e6f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+        
+        .filters {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e6f0;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .system-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .system-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(96, 165, 250, 0.2);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+        
+        .system-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #60a5fa;
+        }
+        
+        .system-details {
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-bottom: 15px;
+        }
+        
+        .system-details div {
+            margin-bottom: 5px;
+        }
+        
+        .planets-list {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .planets-header {
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .planet-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: rgba(167, 139, 250, 0.1);
+            border-radius: 6px;
+            font-size: 0.85em;
+            border-left: 3px solid #a78bfa;
+        }
+        
+        .planet-name {
+            font-weight: bold;
+            color: #e0e6f0;
+        }
+        
+        .planet-type {
+            color: #a78bfa;
+            font-size: 0.9em;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            font-size: 1.2em;
+        }
+        
+        .import-status {
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .spectral-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .spectral-o { background: #3b82f6; }
+        .spectral-b { background: #60a5fa; }
+        .spectral-a { background: #93c5fd; }
+        .spectral-f { background: #fbbf24; }
+        .spectral-g { background: #f59e0b; }
+        .spectral-k { background: #fb923c; }
+        .spectral-m { background: #f87171; }
+        
+        @media (max-width: 768px) {
+            .systems-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌟 Star Systems Explorer</h1>
+            <p class="subtitle">NASA Exoplanet Archive Database</p>
+        </header>
+        
+        {% if import_status.running %}
+        <div class="import-status">
+            ⏳ Loading data from NASA Exoplanet Archive... Please wait.
+        </div>
+        {% endif %}
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Systems</div>
+                <div class="stat-value">{{ stats.total_systems }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">With Planets</div>
+                <div class="stat-value">{{ stats.systems_with_planets }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Planets</div>
+                <div class="stat-value">{{ stats.total_planets }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Distance</div>
+                <div class="stat-value">{{ "%.1f"|format(stats.avg_distance) }} ly</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <h2 style="margin-bottom: 20px; color: #e0e6f0;">🔍 Search Filters</h2>
+            <form method="get" action="/systems">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="name">System Name</label>
+                        <input type="text" id="name" name="name" 
+                               value="{{ filters.name or '' }}" 
+                               placeholder="e.g., Kepler">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="distance">Max Distance (light years)</label>
+                        <input type="number" id="distance" name="distance" 
+                               value="{{ filters.distance or '' }}" 
+                               placeholder="e.g., 100" step="0.1">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="spectral_type">Spectral Types (comma-separated)</label>
+                        <input type="text" id="spectral_type" name="spectral_type" 
+                               value="{{ filters.spectral_type or '' }}" 
+                               placeholder="e.g., G,K,M">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="has_planets">Has Planets</label>
+                        <select id="has_planets" name="has_planets">
+                            <option value="">Any</option>
+                            <option value="true" {% if filters.has_planets == "true" %}selected{% endif %}>Yes</option>
+                            <option value="false" {% if filters.has_planets == "false" %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit">Apply Filters</button>
+                    <button type="button" onclick="window.location.href='/systems'">Clear</button>
+                </div>
+            </form>
+        </div>
+        
+        <div style="margin-bottom: 20px; color: #94a3b8;">
+            Showing {{ filtered_count }} of {{ total_systems }} systems
+        </div>
+        
+        {% if systems %}
+        <div class="systems-grid">
+            {% for system in systems %}
+            <div class="system-card">
+                <div class="system-name">{{ system.name }}</div>
+                <div class="system-details">
+                    <div>
+                        <strong>Spectral Type:</strong> 
+                        {% set first_char = system.spectral_type[0]|upper if system.spectral_type and system.spectral_type != "Unknown" else "" %}
+                        {% if first_char %}
+                        <span class="spectral-badge spectral-{{ first_char|lower }}">
+                            {{ system.spectral_type }}
+                        </span>
+                        {% else %}
+                        {{ system.spectral_type }}
+                        {% endif %}
+                    </div>
+                    <div><strong>Distance:</strong> {{ "%.2f"|format(system.distance_ly) }} ly</div>
+                    <div><strong>Planets:</strong> {{ system.planets|length }}</div>
+                </div>
+                
+                {% if system.planets %}
+                <div class="planets-list">
+                    <div class="planets-header">Planets:</div>
+                    {% for planet in system.planets %}
+                    <div class="planet-item">
+                        <span class="planet-name">{{ planet.name }}</span><br>
+                        <span class="planet-type">{{ planet.classify() }}</span>
+                        ({{ "%.2f"|format(planet.mass) }} M⊕, {{ "%.2f"|format(planet.radius) }} R⊕)
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            No star systems match your search criteria.
+            {% if total_systems == 0 %}
+            <br><br>Run the sync command to import data from NASA.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

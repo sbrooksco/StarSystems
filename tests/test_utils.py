@@ -1,6 +1,6 @@
 import unittest
 import os
-from models import Planet, StarSystem
+from src.starsystems.models.models import Planet, StarSystem
 from utils import save_to_csv, load_from_csv, search_planets_by_mass, search_planets_by_type
 
 class TestCSVUtilities(unittest.TestCase):

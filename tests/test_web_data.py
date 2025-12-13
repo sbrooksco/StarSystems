@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from web_data import get_web_data
+from src.starsystems.services.web_data import get_web_data
 
 class TestWebDataParsing(unittest.TestCase):
 

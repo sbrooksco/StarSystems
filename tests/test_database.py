@@ -3,7 +3,7 @@ import unittest
 import tempfile
 import os
 import importlib
-from models import StarSystem, Planet
+from src.starsystems.models.models import StarSystem, Planet
 
 class TestDatabase(unittest.TestCase):
     def setUp(self):
@@ -15,7 +15,7 @@ class TestDatabase(unittest.TestCase):
         os.environ["STAR_SYSTEMS_DB"] = self.temp_db_path
 
         # Import & reload database module after env var is set
-        import database
+        from src.starsystems.database import database
         importlib.reload(database)
 
         # Initialize tables in temp DB

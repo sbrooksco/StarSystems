@@ -1,6 +1,6 @@
 # tests/test_models.py
 import unittest
-from models import Planet, StarSystem
+from src.starsystems.models.models import Planet, StarSystem
 
 class TestPlanet(unittest.TestCase):
 
