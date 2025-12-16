@@ -13,7 +13,7 @@ jobs:
 
     steps:
       # Step 1: Checkout repository
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Step 2: Set up Python
       - name: Set up Python
@@ -25,14 +25,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install coverage
 
       # Step 4: Run tests with coverage
       - name: Run tests
-        env:
-          STAR_SYSTEMS_DB: ":memory:"  # ensure tests use in-memory DB
         run: |
-          coverage run -m unittest discover -s tests
-          coverage report -m
+          pytest --cov=starsystems --cov-report=term-missing
 
