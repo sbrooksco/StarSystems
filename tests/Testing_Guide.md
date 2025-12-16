@@ -19,9 +19,11 @@ tests/
 ```
 
 ## Running Tests
-Activate the virtual env:
+Activate the virtual env and install the dev requirements:
 ```
 source venv/bin/activate
+
+pip install -r requirements-dev.txt
 ```
 ### Run All Tests
 
@@ -289,18 +291,24 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.11'
+        python-version: '3.13'
     
     - name: Install dependencies
       run: |
         pip install -r requirements-dev.txt
+        
+    - name: Install package
+      run: |
+        pip install -e .
     
     - name: Run tests
       run: |
         pytest --cov=starsystems --cov-report=xml
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v2
+        
+    - name: Check coverage threshold
+      run: |
+        pytest --cov=starsystems --cov-fail-under=85
+
 ```
 
 ## Debugging Failed Tests
