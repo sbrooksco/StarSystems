@@ -16,7 +16,7 @@ class Planet:
         Classification string (Dwarf Planet, Terrestrial, Super-Earth, or Gas Giant)
     """
     def classify(self) -> str:
-        if self.mass <= 0.1:
+        if self.mass < 0.1:
             return "Dwarf Planet"
         elif self.mass < 2 and self.radius < 1.5:
             return "Terrestrial"
@@ -36,6 +36,20 @@ class Planet:
             "name": self.name,
             "mass": self.mass,
             "radius": self.radius,
-            "orbital_distance": self.orbital_distance,
+            "orbit_distance": self.orbit_distance,
             "classification": self.classify()
         }
+
+    """
+    Create a string representation of the planet.
+
+    Returns:
+        String representation of the planet.
+    """
+    def __str__(self) -> str:
+        return (
+            f"{self.name}: Mass={self.mass:.2f} M⊕, "
+            f"Radius={self.radius:.2f} R⊕, "
+            f"Orbit={self.orbit_distance:.2f} AU "
+            f"({self.classify()})"
+        )
