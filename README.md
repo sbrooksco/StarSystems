@@ -295,18 +295,3 @@ Stephen Brooks - [GitHub](https://github.com/sbrooksco)
 
 - NASA Exoplanet Archive for providing the data
 - The exoplanet research community
-
-++++++++++++++++++++++++++++
-
-#### Running unit tests:
-
-At project root (in venv):
-```
-% python -m unittest discover -s tests
-```
-
-#### Coverage: (In venv to avoid installing in your environment)
-pip install coverage\
-coverage run -m unittest discover -s tests
-
-coverage report -m
